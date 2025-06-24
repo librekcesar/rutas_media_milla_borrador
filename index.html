@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+    <!-- Estas lineas son para que funcione en GitHub -->
+    <link rel="stylesheet" href="https://librekcesar.github.io/busca_zipcodes4/leaflet-search-master/leaflet-search-master/src/leaflet-search.css" />
+    <script src="https://librekcesar.github.io/busca_zipcodes4/leaflet-search-master/leaflet-search-master/src/leaflet-search.js"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 900px;
+        }
+
+            #map-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(red, green, blue, alpha);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 25px;
+            z-index: 1000;
+        }
+
+
+        .leaflet-control-search {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+        
+#map-legend {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5em;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+    }
+    </style>
+</head>
+<body>
+    <div id="map-title"> Rutas Media milla</div>
+    <div id="map"></div>
+    <div id="map-legend" class="legend">
+        <h4>Leyenda</h4>
+        <div><span style="background-color: #d8180c; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span> Nivel de riesgo de ruta (Alto)</div>
+        <div><span style="background-color: #c8a207; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span> Nivel de riesgo de ruta (Medio) </div>
+        <div><span style="background-color: #3fd80c; width: 20px; height: 20px; display: inline-block; border-radius: 50%;"></span> Nivel de riesgo de ruta (Bajo) </div>
+    </div>
+
+    <!-- Descomentar este bloque de código en el github -->
+    <script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
+    <script src="https://librekcesar.github.io/busca_zipcodes4/leaflet-search-master/leaflet-search-master/src/leaflet-search.js"></script>
+    <script src="RUTA_MX0_SPGR2_simp_copia.js"></script> <!-- GeoJSON de la primera capa de puntos -->
+    <script src="RUTA_MX0_GDL1_simp_copia.js"></script> <!-- GeoJSON de la segunda capa de puntos -->
+    <script src="PEMEX_MX_SPGR2_copia.js"></script> <!-- GeoJSON de la tercera capa de puntos -->
+    <script src="PEMEX_MX_GDL1_copia.js"></script>
+    
+
+    <script>
+    // Suponiendo que 'centroidemx4.js' define una variable 'cenmx4' con el GeoJSON de la primera capa de puntos
+    var puntos1 = pemex_spgr2;
+    // Suponiendo que 'puntos_geojson_2.js' define una variable 'puntos2' con el GeoJSON de la segunda capa de puntos
+    var puntos2 = pemex_gdl1;
+    // Suponiendo que 'puntos_geojson_3.js' define una variable 'puntos3' con el GeoJSON de la tercera capa de puntos
+    
+    // Suponiendo que 'lineas_geojson_1.js' define una variable 'lineas1' con el GeoJSON de la primera capa de líneas
+    var lineas1 = mx_spgr2;
+    // Suponiendo que 'lineas_geojson_2.js' define una variable 'lineas2' con el GeoJSON de la segunda capa de líneas
+    var lineas2 = mx0_gdl1;
+    // Suponiendo que 'lineas_geojson_3.js' define una variable 'lineas3' con el GeoJSON de la tercera capa de líneas
+   
+     //
+    
+    //
+    //
+    
+
+    // Crear el mapa centrado en una ubicación específica
+    var map = new L.Map('map', {zoom: 7, center: new L.latLng([20.00695, -100.34366]) });
+
+    // Añadir capa de tiles al mapa
+    map.addLayer(new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'));
+
+    // Función para crear capas de puntos
+    function crearCapaPuntos(data, fillColor) {
+        return new L.GeoJSON(data, {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: 10,
+                    fillColor: fillColor,
+                    color: "#040305",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                });
+            },
+            onEachFeature: function (feature, layer) {
+                var popupContent = '<h4 style="color:' + feature.properties.color + '">' +
+                                   'Nombre: ' + feature.properties.Name + '</h4>' +
+                                   'Dirección: ' + feature.properties.description + '</h4>' + ' ' +
+                                   'Otros: ' + feature.properties.direccion;
+                layer.bindPopup(popupContent);
+            }
+        });
+    }
+
+    // Crear las capas de puntos
+    var capaPuntos1 = crearCapaPuntos(puntos1, "#1E75EC");
+    var capaPuntos2 = crearCapaPuntos(puntos2, "#0F56B8");
+    
+
+    // Función para crear capas de líneas
+    function crearCapaLineas(data, fillColor) {
+        return new L.GeoJSON(data, {
+            style: function (feature) {
+                return {
+                    color: fillColor,
+                    weight: 6,
+                    opacity: 1
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                var popupContent = '<h4 style="color:' + feature.properties.color + '">' +
+                                   'Nombre: ' + feature.properties.name + '</h4>' +
+                                   'Tiempo de ruta: ' + feature.properties.t_ruta + '</h4>' +
+                                   'Nivel de riesgo: ' + feature.properties.t_riesgo;
+                layer.bindPopup(popupContent);
+            }
+        });
+    }
+
+    // Crear las capas de líneas
+    var capaLineas1 = crearCapaLineas(lineas1, "#c8a207");
+    var capaLineas2 = crearCapaLineas(lineas2, "#c8a207");
+   
+    
+
+
+
+    ////
+   
+
+    // Añadir las capas al mapa
+    map.addLayer(capaPuntos1);
+    map.addLayer(capaPuntos2);
+    
+    map.addLayer(capaLineas1);
+    map.addLayer(capaLineas2);
+    
+
+    // Añadir control de capas
+    var overlays = {
+        "Paradas seguras MX0-SPGR2": capaPuntos1,
+        "Paradas seguras MX0- GDL1": capaPuntos2,
+       
+        "Ruta MX0-SPGR2": capaLineas1,
+        "Ruta MX0-GDL1": capaLineas2
+       
+    };
+
+    L.control.layers(null, overlays, {collapsed: false}).addTo(map);
+    </script>
+</body>
+</html>
