@@ -65,6 +65,7 @@
     <script src="RUTA_MX0_GDL1_simp_copia.js"></script> <!-- GeoJSON de la segunda capa de puntos -->
     <script src="PEMEX_MX_SPGR2_copia.js"></script> <!-- GeoJSON de la tercera capa de puntos -->
     <script src="PEMEX_MX_GDL1_copia.js"></script>
+    <script src="entidades_mex_simpl _copia.js"></script>
     
 
     <script>
@@ -79,10 +80,44 @@
     // Suponiendo que 'lineas_geojson_2.js' define una variable 'lineas2' con el GeoJSON de la segunda capa de líneas
     var lineas2 = mx0_gdl1;
     // Suponiendo que 'lineas_geojson_3.js' define una variable 'lineas3' con el GeoJSON de la tercera capa de líneas
+
+    var poligono1 = mex;
    
      //
     
     //
+        function getColor(riesgo) {
+            switch (riesgo) {
+                case 'ALTO': return '#d8180c';
+                case 'MEDIO': return '#c8a207';
+                case 'BAJO': return '#3fd80c';
+                default: return '#a08c8a';
+            }
+        }
+
+        function style(feature) {
+            return {
+                fillColor: getColor(feature.properties.riesgo),
+                weight: 1,
+                opacity: 1,
+                color: 'black',
+                dashArray: '2',
+                fillOpacity: 0.5
+            };
+        }
+
+        function onEachFeature(feature, layer) {
+            if (feature.properties) {
+                layer.bindPopup('<p> Estado: ' + feature.properties.NOM_ENT + '</p><p>Otro: ' + feature.properties.NOMGEO + '</p><p>Nivel de riesgo: ' + feature.properties.riesgo  + '</p><p>Localidad: ' + feature.properties.locality + '</p>');
+            }
+        }
+
+        var layerGroup = L.geoJSON(mex, {
+            style: style,
+            onEachFeature: onEachFeature
+        });
+
+
     //
     
 
@@ -132,7 +167,7 @@
             },
             onEachFeature: function (feature, layer) {
                 var popupContent = '<h4 style="color:' + feature.properties.color + '">' +
-                                   'Nombre: ' + feature.properties.name + '</h4>' +
+                                   'Nombre: ' + feature.properties.Name + '</h4>' +
                                    'Tiempo de ruta: ' + feature.properties.t_ruta + '</h4>' +
                                    'Nivel de riesgo: ' + feature.properties.t_riesgo;
                 layer.bindPopup(popupContent);
@@ -146,6 +181,7 @@
    
     
 
+    //////
 
 
     ////
@@ -165,6 +201,7 @@
         "Paradas seguras MX0- GDL1": capaPuntos2,
        
         "Ruta MX0-SPGR2": capaLineas1,
+        "nivel de riesgo por entidad": layerGroup,
         "Ruta MX0-GDL1": capaLineas2
        
     };
